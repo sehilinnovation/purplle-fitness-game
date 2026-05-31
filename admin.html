@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Purplle Fitness — Admin</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600;700&display=swap');
+
+    :root {
+      --pink: #e040fb; --pink-glow: rgba(224,64,251,0.55);
+      --purple: #7c3aed;
+      --gold: #ffb3de; --gold2: #ffd6ee;
+      --bg: #060110; --card: #0e0818; --border: #2a1040;
+      --text: #f0e0f8; --muted: #664488; --green: #80ffb0;
+      --radius: 14px;
+    }
+
+    * { box-sizing:border-box; margin:0; padding:0; }
+
+    body {
+      background: var(--bg);
+      background-image:
+        linear-gradient(rgba(224,64,251,0.02) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(224,64,251,0.02) 1px,transparent 1px);
+      background-size: 32px 32px;
+      color:var(--text); font-family:'Rajdhani',sans-serif;
+      min-height:100vh; display:flex; flex-direction:column; align-items:center;
+      padding:0 16px 60px;
+    }
+
+    .top-stripe {
+      width:100%; height:4px;
+      background:linear-gradient(90deg,transparent,var(--pink),var(--purple),transparent);
+      margin-bottom:28px;
+      box-shadow:0 0 12px rgba(224,64,251,0.5);
+    }
+
+    .brand-icon { font-size:2.5rem; margin-bottom:6px; filter:drop-shadow(0 0 12px rgba(224,64,251,0.5)); }
+
+    .brand-name {
+      font-family:'Orbitron',sans-serif; font-size:1.1rem; font-weight:900; letter-spacing:.06em;
+      text-align:center; line-height:1.3;
+      background:linear-gradient(180deg,#ffffff 0%,#e040fb 60%,#7c3aed 100%);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+      margin-top:4px;
+    }
+
+    .brand-sub {
+      font-size:.68rem; letter-spacing:.25em; text-transform:uppercase;
+      color:var(--pink); margin-top:2px; margin-bottom:22px; opacity:.8;
+    }
+
+    .divider {
+      width:100%; max-width:480px; height:1px;
+      background:linear-gradient(90deg,transparent,var(--pink),var(--purple),transparent);
+      margin-bottom:20px; opacity:.4;
+    }
+
+    .screen { display:none; width:100%; max-width:480px; flex-direction:column; align-items:stretch; }
+    .screen.active { display:flex; }
+
+    .card {
+      background:var(--card); border:1px solid rgba(224,64,251,0.1);
+      border-top:3px solid var(--pink); border-radius:var(--radius);
+      padding:24px 22px; margin-bottom:14px;
+    }
+
+    .card.gold-border { border-top-color:var(--gold2); border-color:rgba(255,182,222,0.1); }
+
+    .card-title {
+      font-family:'Orbitron',sans-serif; font-size:1rem; font-weight:700;
+      letter-spacing:.08em; color:#e0c0e8; margin-bottom:5px;
+    }
+    .card-sub { font-size:.78rem; color:var(--muted); margin-bottom:18px; line-height:1.5; }
+
+    .form-input {
+      width:100%; background:#080010; border:1px solid #2a1040;
+      border-radius:10px; color:var(--text); font-family:'Rajdhani',sans-serif;
+      font-size:.95rem; font-weight:600; padding:12px 14px; outline:none;
+      transition:border-color .2s; -webkit-appearance:none; margin-bottom:10px;
+    }
+    .form-input:focus { border-color:var(--pink); }
+    .form-input.pw { text-align:center; letter-spacing:.25em; }
+    .form-input.url-input { font-size:.78rem; font-weight:400; letter-spacing:0; word-break:break-all; }
+
+    .btn {
+      width:100%; padding:15px; border:none; border-radius:var(--radius);
+      font-family:'Orbitron',sans-serif; font-size:.9rem; font-weight:700;
+      letter-spacing:.1em; cursor:pointer; transition:transform .08s; margin-bottom:10px;
+    }
+    .btn:active { transform:scale(.97); }
+    .btn-pink   { background:linear-gradient(135deg,var(--pink) 0%,#9c27b0 100%); color:#fff; box-shadow:0 5px 22px var(--pink-glow); }
+    .btn-gold   { background:linear-gradient(135deg,var(--gold) 0%,#cc60a0 100%); color:#300030; font-weight:900; box-shadow:0 5px 20px rgba(255,179,222,.35); }
+    .btn-ghost  { background:transparent; border:1px solid var(--border); color:var(--muted); font-size:.8rem; }
+    .btn-ghost:hover { border-color:#555; color:var(--text); }
+    .btn-danger { background:transparent; border:1px solid #2a1040; color:#3a1a4a; font-size:.8rem; }
+
+    .status { text-align:center; font-size:.82rem; min-height:20px; margin-bottom:6px; }
+    .status.ok    { color:var(--green); }
+    .status.error { color:var(--pink); }
+
+    .prize-list { display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
+
+    .prize-row {
+      background:#080010; border:1px solid var(--border); border-radius:10px;
+      padding:10px 12px; display:grid; grid-template-columns:26px 52px 1fr;
+      align-items:center; gap:8px;
+    }
+    .prize-row.locked {
+      opacity:.45; border-style:dashed;
+      grid-template-columns:26px 40px 1fr auto;
+    }
+
+    .slot-num { font-family:'Orbitron',sans-serif; font-size:.8rem; color:var(--muted); text-align:center; }
+    .icon-input {
+      background:#0e0818; border:1px solid #3a1a5a; border-radius:7px;
+      color:var(--text); font-size:1.3rem; text-align:center; padding:5px 2px;
+      outline:none; width:100%; transition:border-color .2s; font-family:'Segoe UI Emoji',sans-serif;
+    }
+    .icon-input:focus { border-color:var(--gold); }
+    .name-input {
+      background:#0e0818; border:1px solid #3a1a5a; border-radius:7px;
+      color:var(--text); font-family:'Rajdhani',sans-serif;
+      font-size:.92rem; font-weight:600; padding:7px 10px; outline:none;
+      width:100%; transition:border-color .2s;
+    }
+    .name-input:focus { border-color:var(--gold); }
+    .icon-fixed { font-size:1.3rem; text-align:center; font-family:'Segoe UI Emoji',sans-serif; }
+    .name-fixed { font-size:.85rem; font-weight:600; color:var(--muted); }
+    .lock-badge {
+      font-size:.56rem; font-family:'Orbitron',sans-serif; letter-spacing:.1em;
+      color:var(--muted); border:1px solid #333; border-radius:5px; padding:2px 6px;
+    }
+
+    .emoji-section {
+      background:#080010; border:1px solid var(--border); border-radius:10px;
+      padding:12px 14px; margin-bottom:16px;
+    }
+    .emoji-label { font-size:.62rem; text-transform:uppercase; letter-spacing:.15em; color:var(--muted); margin-bottom:8px; }
+    .emoji-chips { display:flex; flex-wrap:wrap; gap:6px; }
+    .emoji-chip {
+      background:#0e0818; border:1px solid #2a1040; border-radius:7px;
+      padding:5px 9px; font-size:1.15rem; cursor:pointer; transition:border-color .15s;
+      font-family:'Segoe UI Emoji',sans-serif;
+    }
+    .emoji-chip:hover  { border-color:var(--gold); background:#1a0528; }
+    .emoji-chip:active { transform:scale(.88); }
+    .emoji-chip.copied { border-color:var(--green); }
+
+    .info-box {
+      background:#0d100a; border:1px dashed rgba(128,255,176,0.3); border-radius:9px;
+      padding:11px 14px; font-size:.76rem; color:#4a7a5a; line-height:1.6; margin-bottom:14px;
+    }
+    .info-box strong { color:var(--green); display:block; margin-bottom:2px; }
+
+    footer { margin-top:28px; font-size:.62rem; color:#333; letter-spacing:.1em; text-transform:uppercase; }
+  </style>
+</head>
+<body>
+
+<div class="top-stripe"></div>
+<div class="brand-icon">💪🌸</div>
+<div class="brand-name">PURPLLE FITNESS</div>
+<div class="brand-sub">Admin Panel</div>
+<div class="divider"></div>
+
+<!-- SCREEN 1: LOGIN -->
+<div class="screen active" id="loginScreen">
+  <div class="card">
+    <div class="card-title">&#128274; Owner Login</div>
+    <div class="card-sub">Enter the admin password to manage prizes</div>
+    <input class="form-input pw" id="pwInput" type="password" placeholder="Password" />
+    <button class="btn btn-pink" id="loginBtn">Enter Panel</button>
+    <div class="status error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- SCREEN 2: SETUP -->
+<div class="screen" id="setupScreen">
+  <div class="card">
+    <div class="card-title">&#128279; Connect Google Sheet</div>
+    <div class="card-sub">
+      Paste your Apps Script URL below. You only need to do this once.<br><br>
+      <strong style="color:#aaa">Where to find it:</strong> Apps Script → Deploy → Manage deployments → copy the Web app URL.
+    </div>
+    <input class="form-input url-input" id="sheetUrlInput" type="url" placeholder="https://script.google.com/macros/s/.../exec" />
+    <button class="btn btn-pink" id="saveUrlBtn">Connect &amp; Load Prizes</button>
+    <div class="status" id="setupStatus"></div>
+  </div>
+</div>
+
+<!-- SCREEN 3: PRIZE EDITOR -->
+<div class="screen" id="editorScreen">
+  <div class="card gold-border">
+    <div class="card-title">&#127873; Manage Prizes</div>
+    <div class="card-sub">Edit the 9 gifts. Slot 10 (No Gift) is always fixed.</div>
+
+    <div class="info-box">
+      <strong>&#128161; Sync note</strong>
+      Changes save to Google Sheets — customers on any device will see the updated prizes automatically.
+    </div>
+
+    <div class="prize-list" id="prizeList"></div>
+
+    <div class="emoji-section">
+      <div class="emoji-label">Tap emoji to copy → paste into icon box</div>
+      <div class="emoji-chips" id="emojiChips"></div>
+    </div>
+
+    <div class="status" id="saveStatus"></div>
+    <button class="btn btn-gold" id="saveBtn">&#10003; Save Prizes to Sheet</button>
+    <button class="btn btn-ghost" id="resetBtn">&#8635; Reset to Defaults</button>
+    <button class="btn btn-ghost" id="changeUrlBtn">&#9881; Change Sheet URL</button>
+    <button class="btn btn-danger" id="logoutBtn">&#8592; Logout</button>
+  </div>
+</div>
+
+<footer>Purplle Fitness &mdash; Admin Panel</footer>
+
+<script>
+  const ADMIN_PASSWORD = 'purplle123';
+
+  const DEFAULT_PRIZES = [
+    { icon: '💪', name: 'Free Trial Class' },
+    { icon: '🥤', name: 'Free Protein Shake' },
+    { icon: '🧘', name: 'Free Yoga Session' },
+    { icon: '💆', name: 'Free Body Assessment' },
+    { icon: '🎀', name: 'Fitness Goodie Bag' },
+    { icon: '💵', name: '₹100 Cash Back' },
+    { icon: '👑', name: 'VIP Week Pass' },
+    { icon: '🌸', name: 'Spa Refresh Voucher' },
+    { icon: '🏅', name: 'Free Personal Training' },
+  ];
+
+  const EMOJI_LIST = [
+    '💪','🥤','🧘','💆','🎀','💵','👑','🌸','🏅','🎽','👟','🍎',
+    '🥗','🏋️','⚡','🌟','💎','⭐','🎊','🎯','🎖️','🧴','💅','🛍️',
+    '🪙','💰','🧁','🎂','🍫','🥤','🍦','🎁','💌','🎫','🎟️',
+  ];
+
+  const $ = id => document.getElementById(id);
+
+  function showScreen(id) {
+    ['loginScreen','setupScreen','editorScreen'].forEach(s => {
+      $(s).classList.toggle('active', s === id);
+    });
+  }
+
+  $('loginBtn').addEventListener('click', login);
+  $('pwInput').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+
+  function login() {
+    if ($('pwInput').value === ADMIN_PASSWORD) {
+      $('loginError').textContent = '';
+      $('pwInput').value = '';
+      const url = localStorage.getItem('pf_sheet_url');
+      if (url) { showScreen('editorScreen'); loadFromSheet(url); }
+      else { showScreen('setupScreen'); }
+    } else {
+      $('loginError').textContent = 'Incorrect password.';
+      $('pwInput').value = '';
+    }
+  }
+
+  $('logoutBtn').addEventListener('click', () => showScreen('loginScreen'));
+
+  $('saveUrlBtn').addEventListener('click', async () => {
+    const url = $('sheetUrlInput').value.trim();
+    if (!url.startsWith('https://')) {
+      setStatus('setupStatus', 'Please paste a valid Apps Script URL.', 'error'); return;
+    }
+    setStatus('setupStatus', 'Connecting…', '');
+    const prizes = await fetchPrizes(url);
+    if (prizes === null) {
+      setStatus('setupStatus', 'Could not connect. Check the URL and try again.', 'error'); return;
+    }
+    localStorage.setItem('pf_sheet_url', url);
+    showScreen('editorScreen');
+    buildEditor(prizes);
+  });
+
+  $('changeUrlBtn').addEventListener('click', () => {
+    const url = localStorage.getItem('pf_sheet_url') || '';
+    $('sheetUrlInput').value = url;
+    showScreen('setupScreen');
+  });
+
+  async function fetchPrizes(url) {
+    try {
+      const res  = await fetch(`${url}?action=getPrizes`);
+      const data = await res.json();
+      if (data.prizes && Array.isArray(data.prizes) && data.prizes.length === 9) return data.prizes;
+      return DEFAULT_PRIZES.map(p => ({ ...p }));
+    } catch(_) { return null; }
+  }
+
+  async function loadFromSheet(url) {
+    setStatus('saveStatus', 'Loading prizes…', '');
+    const prizes = await fetchPrizes(url);
+    if (prizes === null) {
+      setStatus('saveStatus', 'Could not load prizes. Check your internet connection.', 'error');
+      buildEditor(DEFAULT_PRIZES.map(p => ({ ...p })));
+    } else {
+      setStatus('saveStatus', '', '');
+      buildEditor(prizes);
+    }
+  }
+
+  function buildEditor(prizes) {
+    const list = $('prizeList');
+    list.innerHTML = '';
+    prizes.forEach((prize, i) => {
+      const row = document.createElement('div');
+      row.className = 'prize-row';
+      row.innerHTML =
+        `<div class="slot-num">${i + 1}</div>` +
+        `<input class="icon-input" maxlength="3" value="${prize.icon || '🎁'}" />` +
+        `<input class="name-input" value="${prize.name || ''}" placeholder="Prize name" maxlength="40" />`;
+      list.appendChild(row);
+    });
+
+    const locked = document.createElement('div');
+    locked.className = 'prize-row locked';
+    locked.innerHTML =
+      `<div class="slot-num">10</div>` +
+      `<div class="icon-fixed">😔</div>` +
+      `<div class="name-fixed">Sorry! No Gift This Time</div>` +
+      `<div class="lock-badge">FIXED</div>`;
+    list.appendChild(locked);
+
+    const chips = $('emojiChips');
+    chips.innerHTML = '';
+    EMOJI_LIST.forEach(emoji => {
+      const btn = document.createElement('button');
+      btn.className = 'emoji-chip'; btn.textContent = emoji;
+      btn.addEventListener('click', () => {
+        navigator.clipboard.writeText(emoji).then(() => {
+          btn.classList.add('copied');
+          setTimeout(() => btn.classList.remove('copied'), 900);
+        }).catch(() => {});
+      });
+      chips.appendChild(btn);
+    });
+  }
+
+  $('saveBtn').addEventListener('click', async () => {
+    const url = localStorage.getItem('pf_sheet_url');
+    if (!url) { setStatus('saveStatus', 'No sheet URL set.', 'error'); return; }
+
+    const icons = document.querySelectorAll('.icon-input');
+    const names = document.querySelectorAll('.name-input');
+    const prizes = [];
+    let hasError = false;
+
+    names.forEach((el, i) => {
+      const name = el.value.trim();
+      if (!name) { el.style.borderColor = 'var(--pink)'; hasError = true; }
+      else        { el.style.borderColor = ''; }
+      prizes.push({ icon: icons[i].value.trim() || '🎁', name });
+    });
+
+    if (hasError) { setStatus('saveStatus', 'Fill in all prize names.', 'error'); return; }
+
+    setStatus('saveStatus', 'Saving…', '');
+    try {
+      const encoded = encodeURIComponent(JSON.stringify(prizes));
+      await fetch(`${url}?action=setPrizes&data=${encoded}`);
+      localStorage.setItem('pf_prizes', JSON.stringify(prizes));
+      setStatus('saveStatus', '✓ Prizes saved to Google Sheets!', 'ok');
+    } catch(_) {
+      setStatus('saveStatus', 'Save failed. Check your internet connection.', 'error');
+    }
+  });
+
+  $('resetBtn').addEventListener('click', () => {
+    if (!confirm('Reset all 9 prizes to original defaults?')) return;
+    buildEditor(DEFAULT_PRIZES.map(p => ({ ...p })));
+    setStatus('saveStatus', 'Defaults loaded — click Save to apply.', 'ok');
+  });
+
+  function setStatus(id, msg, type) {
+    const el = $(id);
+    el.textContent = msg;
+    el.className = 'status ' + type;
+    if (msg && type === 'ok') setTimeout(() => { el.textContent = ''; el.className = 'status'; }, 5000);
+  }
+</script>
+</body>
+</html>
